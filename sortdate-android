@@ -1,19 +1,23 @@
-#! /bin/ksh93
+#! /system/bin/sh
 # hack to sort photos by name in programs that stupidly use dates.
 # (sets the modification timestamps of all files in directory so that they sort
 # numerically and alphabetically)
 
-# This script was initially written on and for my Nexus 6; I later ported it
-# over to my desktop which uses GNU Coreutils' `touch` (which has a different
-# timestamp format and a different variant of `ksh` (ksh93, or "the real Korn
-# Shell").
-
 # Android /system/bin/sh on recent phones is derived from MirBSD ksh, so this
 # uses ksh's "typeset" command for formatting date codes.
 
+# This version of the script uses Coreutils' GNU Sort, which I have compiled
+# for my phone. You can replace the `gnusort` line with the line above it
+# reading `for file in *; do` to avoid this requirement, although the sorting
+# won't be quite as intelligent/sophisticated.
+
+# Additionally, `touch` on my 32-bit android phone refuses to work on 2038 dates
+# _at all_, though using busybox touch or Coreutils' `touch` lets it work up to
+# the point of rollover on 32-bit Unix systems.
+
 # ALSO, A WARNING: THIS SCRIPT PARSES `ls`! BE CAREFUL.
 
-# set -o xtrace
+#set -o xtrace
 # date code of first file.
 # 32-bit datecode limit
 export ITERYEAR=2037
@@ -22,7 +26,7 @@ export ITERDAY=29
 
 export ITERHOUR=23
 export ITERMIN=59
-export ITERSEC=0
+export ITERSEC=59
 
 # this usage of 'typeset' is what makes this script ksh-specific.
 typeset -Z 2 PADSEC
@@ -37,7 +41,7 @@ PADSEC=$ITERSEC
 #for file in *; do
 #for file in "$(ls | gnusort -V)"; do
 #for file in "$(ls | gnusort -V)"; do
-ls | sort -V |while read file; do
+ls | gnusort -V |while read file; do
 #    echo "$file"
 #    echo "break"
     PADHR=$ITERHOUR
@@ -50,9 +54,9 @@ ls | sort -V |while read file; do
 
 #    PADNUM=$PADHR$PADMIN.$PADSEC
 # GNU Coreutils `touch`:
-    PADNUM=$PADYEAR$PADMONTH$PADDAY$PADHR$PADMIN.$PADSEC
+#    PADNUM=$PADYEAR$PADMONTH$PADDAY$PADHR$PADMIN.$PADSEC
 # Android toolbox `touch`:
-#    PADNUM=$PADYEAR$PADMONTH$PADDAY.$PADHR$PADMIN$PADSEC
+    PADNUM=$PADYEAR$PADMONTH$PADDAY.$PADHR$PADMIN$PADSEC
     touch -t $PADNUM "$file"
 
     ITERSEC=`expr $ITERSEC - 1`
@@ -74,7 +78,7 @@ ls | sort -V |while read file; do
 
     if [ "$ITERDAY" -le "0" ]; then
         ITERMONTH=`expr $ITERMONTH - 1`
-        ITERDAY=29 #might be able to do 30 but I'm too lazy to think through it
+        ITERDAY=29 #might be able to do 30 but I'm too lazy to think it through
     fi
 
     if [ "$ITERMONTH" -le "0" ]; then

@@ -1,28 +1,35 @@
-#! /bin/ksh93
+#! /usr/bin/ksh93
 # hack to sort photos by name in programs that stupidly use dates.
-# (sets the modification timestamps of all files in directory so that they sort
-# numerically and alphabetically)
+# I believe this will handle up to 86400 files in a directory.
+# (60*60*24)
+# after that, you get exciting undefined behavior because I don't increment
+# day, month, or year.
+#export ITERSEC=1
+#export ITERSEC=59
+#export ITERMIN=59
+#export ITERHOUR=23
 
-# This script was initially written on and for my Nexus 6; I later ported it
-# over to my desktop which uses GNU Coreutils' `touch` (which has a different
-# timestamp format and a different variant of `ksh` (ksh93, or "the real Korn
-# Shell").
+#set -o xtrace
+# this script ignores all days after the 29th for safety. Therefore it does
+# not quite hit the 32 bit number limit for 'possble time stamps'.
 
-# Android /system/bin/sh on recent phones is derived from MirBSD ksh, so this
-# uses ksh's "typeset" command for formatting date codes.
+# max 32 bit date is 19 January 2038 at 03:14:08.
+#export ITERYEAR=2038
+#export ITERMONTH=1
+#export ITERDAY=19
 
-# ALSO, A WARNING: THIS SCRIPT PARSES `ls`! BE CAREFUL.
+#export ITERSEC=7
+#export ITERMIN=14
+#export ITERHOUR=3
 
-# set -o xtrace
-# date code of first file.
-# 32-bit datecode limit
-export ITERYEAR=2037
-export ITERMONTH=12
-export ITERDAY=29
+# date code of first file, plus one second.
+export ITERYEAR=2038
+export ITERMONTH=1
+export ITERDAY=1
 
-export ITERHOUR=23
-export ITERMIN=59
 export ITERSEC=0
+export ITERMIN=1
+export ITERHOUR=0
 
 # this usage of 'typeset' is what makes this script ksh-specific.
 typeset -Z 2 PADSEC
@@ -34,12 +41,7 @@ typeset -Z 2 PADMONTH
 typeset -Z 2 PADDAY
 
 PADSEC=$ITERSEC
-#for file in *; do
-#for file in "$(ls | gnusort -V)"; do
-#for file in "$(ls | gnusort -V)"; do
-ls | sort -V |while read file; do
-#    echo "$file"
-#    echo "break"
+for file in *; do
     PADHR=$ITERHOUR
     PADMIN=$ITERMIN
     PADSEC=$ITERSEC
@@ -49,10 +51,8 @@ ls | sort -V |while read file; do
     PADDAY=$ITERDAY
 
 #    PADNUM=$PADHR$PADMIN.$PADSEC
-# GNU Coreutils `touch`:
     PADNUM=$PADYEAR$PADMONTH$PADDAY$PADHR$PADMIN.$PADSEC
-# Android toolbox `touch`:
-#    PADNUM=$PADYEAR$PADMONTH$PADDAY.$PADHR$PADMIN$PADSEC
+#    touch -t 19700101$PADNUM "$file"
     touch -t $PADNUM "$file"
 
     ITERSEC=`expr $ITERSEC - 1`
@@ -60,7 +60,7 @@ ls | sort -V |while read file; do
 
     if [ "$ITERSEC" -lt "0" ]; then
         ITERMIN=`expr $ITERMIN - 1`
-        ITERSEC=59
+        ITERSEC=60
     fi
     if [ "$ITERMIN" -lt "0" ]; then
         ITERHOUR=`expr $ITERHOUR - 1`
@@ -74,14 +74,13 @@ ls | sort -V |while read file; do
 
     if [ "$ITERDAY" -le "0" ]; then
         ITERMONTH=`expr $ITERMONTH - 1`
-        ITERDAY=29 #might be able to do 30 but I'm too lazy to think through it
+        ITERDAY=29 #might be able to do 30 but I'm too lazy to think it through
     fi
 
     if [ "$ITERMONTH" -le "0" ]; then
         ITERYEAR=`expr $ITERYEAR - 1`
         ITERMONTH=12 #might be able to do 13, too lazy to think it through.
     fi
-#done
 done
 
 
