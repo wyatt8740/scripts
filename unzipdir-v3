@@ -1,0 +1,50 @@
+#! /bin/bash
+#unzipdir
+#Version 3
+#safely extracts the zip equivalent of tarbombs
+#v2 works on zipfiles with extensions other than .zip (like .xpi and some .cbr files)
+#By Wyatt Ward, but with some things snatched from stack exchange answers
+#Requires info-zip
+
+# version 3 allows you to immediately 'cd' into the created dir with this
+# syntax:
+#	cd $(unzipdir zipfile.zip)
+# or:
+#	cd `unzipdir zipfile.zip`
+# (depending on your shell.)
+#
+export INFILENAME=`echo "$@" | awk -F/ '$0=$NF'` #Looking back, i forget exactly what this does, but I think it cuts out a path.
+export INFILEBASENAME=$(basename "$INFILENAME")
+export INFILEEXTENSION="${INFILEBASENAME##*.}" #not sure how it works. thanks stack exchange
+
+#original v1 line:
+#export OUTPUTDIR=`echo "$INFILENAME" | sed 's/.zip//g'`
+#new v2 line:
+export OUTPUTDIR=`echo "$INFILENAME" | sed "s/.$INFILEEXTENSION//g"`
+
+# echo "OUTPUTDIR is"
+# echo "$OUTPUTDIR"
+export STARTINGDIR="$PWD"
+if [ -f "$1" ]
+then
+#        echo "Found file."
+        mkdir "$OUTPUTDIR"
+        cd "$OUTPUTDIR"
+        if [ `echo "$1" | grep [/]` ]
+        then
+#leading slash present, no need to find actual paths
+#                unzip "$1"
+# quiet unzip
+                unzip -qq "$1"
+        else
+#no slash present, be paranoid and do it the harder way
+#                unzip "$STARTINGDIR/$1"
+# quiet unzip
+                unzip -qq "$STARTINGDIR/$1"
+        fi
+# print destination directory name so we can cd into it
+        echo "$OUTPUTDIR"
+else
+# print to stderr
+        echo "$1 not found." >&2
+fi

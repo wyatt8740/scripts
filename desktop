@@ -1,0 +1,7 @@
+#! /bin/ksh93
+VAL="$(dconf read /org/mate/desktop/background/show-desktop-icons)"
+if [ "$VAL" = "false" ]; then
+  dconf write /org/mate/desktop/background/show-desktop-icons true
+else
+  dconf write /org/mate/desktop/background/show-desktop-icons false
+fi

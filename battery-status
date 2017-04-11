@@ -1,0 +1,4 @@
+#! /bin/ksh93
+echo "Battery level (percentage):"
+echo "scale=2; (  $(cat /sys/class/power_supply/BAT1/charge_now) / $(cat /sys/class/power_supply/BAT1/charge_full) ) * 100" | bc
+

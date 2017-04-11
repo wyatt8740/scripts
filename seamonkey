@@ -1,0 +1,4 @@
+#! /bin/bash
+# 24-hour time.
+export LC_TIME=en_GB.UTF8
+/usr/bin/seamonkey "$@"

@@ -1,0 +1,10 @@
+#! /bin/bash
+# 3dsscrnbottomrm x y
+# delete bottom screen screenshot numbers between x and y
+START="$1"
+END="$2"
+NUM="$START"
+while [ "$NUM" -le "$END" ]; do
+rm "scr_""$NUM""_BOTTOM.png"
+NUM=$(expr "$NUM" + 1)
+done

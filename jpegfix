@@ -1,0 +1,6 @@
+#! /bin/ksh93
+mmv '*.jpeg' '#1.jpg'
+mmv '*.JPG' '#1.jpg'
+mmv '*.JPEG' '#1.jpg'
+#mmv '*.PNG' '#1.png'
+#mmv '*.GIF' '#1.gif'

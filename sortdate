@@ -1,0 +1,93 @@
+#! /usr/bin/ksh93
+# hack to sort photos by name in programs that stupidly use dates.
+# I believe this will handle up to 86400 files in a directory.
+# (60*60*24)
+# after that, you get exciting undefined behavior because I don't increment
+# day, month, or year.
+#export ITERSEC=1
+#export ITERSEC=59
+#export ITERMIN=59
+#export ITERHOUR=23
+
+#set -o xtrace
+# this script ignores all days after the 29th for safety. Therefore it does
+# not quite hit the 32 bit number limit for 'possble time stamps'.
+
+# max 32 bit date is 19 January 2038 at 03:14:08.
+#export ITERYEAR=2038
+#export ITERMONTH=1
+#export ITERDAY=19
+
+#export ITERSEC=7
+#export ITERMIN=14
+#export ITERHOUR=3
+
+# date code of first file, plus one second.
+export ITERYEAR=2038
+export ITERMONTH=1
+export ITERDAY=1
+
+export ITERSEC=0
+export ITERMIN=1
+export ITERHOUR=0
+
+# this usage of 'typeset' is what makes this script ksh-specific.
+typeset -Z 2 PADSEC
+typeset -Z 2 PADMIN
+typeset -Z 2 PADHR
+
+typeset -Z 4 PADYEAR
+typeset -Z 2 PADMONTH
+typeset -Z 2 PADDAY
+
+PADSEC=$ITERSEC
+for file in *; do
+    PADHR=$ITERHOUR
+    PADMIN=$ITERMIN
+    PADSEC=$ITERSEC
+
+    PADYEAR=$ITERYEAR
+    PADMONTH=$ITERMONTH
+    PADDAY=$ITERDAY
+
+#    PADNUM=$PADHR$PADMIN.$PADSEC
+    PADNUM=$PADYEAR$PADMONTH$PADDAY$PADHR$PADMIN.$PADSEC
+#    touch -t 19700101$PADNUM "$file"
+    touch -t $PADNUM "$file"
+
+    ITERSEC=`expr $ITERSEC - 1`
+
+
+    if [ "$ITERSEC" -lt "0" ]; then
+        ITERMIN=`expr $ITERMIN - 1`
+        ITERSEC=60
+    fi
+    if [ "$ITERMIN" -lt "0" ]; then
+        ITERHOUR=`expr $ITERHOUR - 1`
+        ITERMIN=59
+    fi
+
+    if [ "$ITERHOUR" -lt "0" ]; then #00:00 is midnight
+        ITERDAY=`expr $ITERDAY - 1`
+        ITERHOUR=23
+    fi
+
+    if [ "$ITERDAY" -le "0" ]; then
+        ITERMONTH=`expr $ITERMONTH - 1`
+        ITERDAY=29 #might be able to do 30 but I'm too lazy to think it through
+    fi
+
+    if [ "$ITERMONTH" -le "0" ]; then
+        ITERYEAR=`expr $ITERYEAR - 1`
+        ITERMONTH=12 #might be able to do 13, too lazy to think it through.
+    fi
+done
+
+
+#export ITERYEAR=2038
+#export ITERMONTH=1
+#export ITERDAY=19
+
+#export ITERSEC=7
+#export ITERMIN=14
+#export ITERHOUR=3

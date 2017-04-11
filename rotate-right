@@ -1,0 +1,10 @@
+#! /bin/sh
+xrandr --output LVDS1 --rotate right
+#================================================
+# options for for tablet orientation are:	#
+#	'none'	(0 degrees)			#
+#	'cw'	(90 degrees)			#
+#	'half'	(180 degrees)			#
+#	'ccw'	(270 degrees)			#
+#===============================================#
+xsetwacom set "Wacom Intuos S 2 Pen stylus" rotate cw

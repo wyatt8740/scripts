@@ -1,0 +1,5 @@
+#! /bin/ksh93
+# swf decompiler
+FULLFILEPATH="$(readlink -f "$1")"
+# echo $FULLFILEPATH
+java -Xmx1536M -jar "$HOME/development/ffdec/ffdec.jar" "$@"

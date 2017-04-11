@@ -1,0 +1,3 @@
+#! /bin/bash
+# run git interactive fiction interpreter
+git-interpreter -ml no "$@"

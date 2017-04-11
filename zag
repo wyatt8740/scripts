@@ -1,0 +1,4 @@
+#! /bin/bash
+# executes zag (interactive fiction interpreter in java). Requires the jar to
+# be on your path and marked executable.
+java -jar "$(which zag.jar)" "$@"
