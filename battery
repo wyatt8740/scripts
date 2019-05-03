@@ -27,9 +27,10 @@ for file in /sys/class/power_supply/BAT*; do
     BATCUR=`cat "$file"'/charge_now'`
   fi
   echo 'Battery #'"$i"':'
-  # do calculation, tack percentage sign to end of line, and remove decimal
-  # when 100%, the point (.) isn't the first character
-  printf '2 k '"$BATCUR"' '"$BATMAX"' / p'|dc|sed 's/$/%/g;s/^\.//;s/^1\./1/' | while read line; do echo -n "$line"; done
+  # do calculation, remove newline, tack percentage sign to end of line.
+  # dc has the '0 k 1 / p' bit at the end to remove the trailing two decimal
+  # places and give us just a two-or-three-digit-percentage.
+  printf '2 k '"$BATCUR"' '"$BATMAX"' / 100 * 0 k 1 / p'|dc|while read line; do echo -n "$line""%"; done
   echo -n "; "
   cat "$file""/status"| while read line; do echo -n "$line"; done
   echo
