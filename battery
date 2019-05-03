@@ -1,0 +1,36 @@
+#! /bin/bash
+
+printf ()
+{
+  echo "$@"
+
+}
+
+i=0
+for file in /sys/class/power_supply/BAT*; do
+  i=`expr "$i" '+' '1'`
+  BATMAX=0
+  BATCUR=0
+  if [ -e "$file"'/energy_now' ]; then
+    # sometimes I get energy_* instead of charge_* for some reason
+    # one is in microamps(?)
+    # the other is in microwatts(?).
+
+    # If SI units are assumed, then energy should be microamps * time, I think.
+
+    # But it doesn't matter anyway; all we really need is the ratio of now vs.
+    # full, I think.
+    BATMAX=`cat "$file"'/energy_full'`
+    BATCUR=`cat "$file"'/energy_now'`
+  else
+    BATMAX=`cat "$file"'/charge_full'`
+    BATCUR=`cat "$file"'/charge_now'`
+  fi
+  echo 'Battery #'"$i"':'
+  # do calculation, tack percentage sign to end of line, and remove decimal
+  # when 100%, the point (.) isn't the first character
+  printf '2 k '"$BATCUR"' '"$BATMAX"' / p'|dc|sed 's/$/%/g;s/^\.//;s/^1\./1/' | while read line; do echo -n "$line"; done
+  echo -n "; "
+  cat "$file""/status"| while read line; do echo -n "$line"; done
+  echo
+done
