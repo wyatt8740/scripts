@@ -3,11 +3,15 @@
 printf ()
 {
   echo "$@"
-
 }
 
 i=0
-for file in /sys/class/power_supply/BAT*; do
+BATPREFIX='/sys/class/power_supply'
+BATNAMECONVENTION='BAT'
+if [ -e "$BATPREFIX"'/PMU_battery_'* ]; then # Powerbook PMU
+  BATNAMECONVENTION='PMU_battery_'
+fi
+for file in "$BATPREFIX"'/'"$BATNAMECONVENTION"*; do
   i=`expr "$i" '+' '1'`
   BATMAX=0
   BATCUR=0
@@ -22,6 +26,9 @@ for file in /sys/class/power_supply/BAT*; do
     # full, I think.
     BATMAX=`cat "$file"'/energy_full'`
     BATCUR=`cat "$file"'/energy_now'`
+  elif [ -e "$file"'/energy_avg' ]; then # Powerbook (G4, at least) PMU does this
+    BATMAX=`cat "$file"'/energy_full'`
+    BATCUR=`cat "$file"'/energy_avg'`
   else
     BATMAX=`cat "$file"'/charge_full'`
     BATCUR=`cat "$file"'/charge_now'`
