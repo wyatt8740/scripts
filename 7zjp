@@ -1,0 +1,6 @@
+#! /bin/sh
+# have to use the 7-zip gui standalone program for this to work... it accepts
+# '7zG.exe x filename' to extract things. No idea why console program doesn't
+# work.
+LC_ALL=ja_JP.utf8 wine "$HOME"'/development/7z/7z.exe' "$@"
+

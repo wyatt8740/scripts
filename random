@@ -1,0 +1,55 @@
+#! /usr/bin/env sh
+
+# a mostly portable random number generator. Works anywhere with /dev/random
+# that either uses busybox or follows POSIX.
+
+# (busybox has dc but not 'bc', POSIX does not specify 'dc' but does specify
+# 'bc,' unfortunately).
+
+# Reminder that /dev/random is not actually guaranteed by POSIX.
+
+rng() {
+  SIZE="$1" # size in bytes
+  head -c"$SIZE" < /dev/random | od -tu"$SIZE" -An|sed 's! !!g;s!\t!!g'
+}
+
+has_dc() {
+  if [ ! "$USE_BC" ]; then
+    2>&1 type dc > /dev/null
+    return "$?"
+  fi
+  return 1 # false
+}
+
+rand_range() {
+  MIN='0'
+  MAX='0'
+
+  if [ "$#" -eq 1 ]; then
+    MAX="$(expr "$1" '+' '1')"
+  elif [ "$#" -eq 2 ]; then
+    MIN="$1"
+    MAX="$(expr "$2" '+' '1')"
+  fi
+  # generate random number in range (inclusive)
+  
+  RAND="$(rng 2)"
+  if has_dc; then
+    echo "$RAND"" ""$MIN"" ""$MAX"" - % ""$MIN"" + p" | dc
+  else
+    echo '('"$RAND"' % ('"$MIN"' - '"$MAX"')) + '"$MIN" | bc
+  fi
+}
+
+
+random_get() {
+  if [ "$#" -ge 1 ] && [ "$#" -le 2 ]; then
+    rand_range "$@"
+  else
+    1>&2 echo 'No minimum or maximum given. Rolling a twenty-sided die.'
+    rand_range 1 20
+    #echo "Error: need to be given a minimum and maximum value (inclusive). If one argument is given, it is inferred that it is the max, and the min is zero."
+  fi
+}  
+
+random_get "$@"
