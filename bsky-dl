@@ -1,0 +1,31 @@
+#! /usr/bin/env sh
+# bsky tl --handle 'sunmicrosystems.bsky.social' --json
+
+wrapper() {
+bsky tl --handle "$1" --json | while read -r line; do
+  # this is soooo stupid. need to turn \n's that are getting interpreted by 'read -r' as newlines back into \n's
+  echo -n "$line" | sed '$ ! s/$/\\n/'|tr -d '\n'| jq -r '.post.cid' 2>/dev/null
+  echo -n "$line" | sed '$ ! s/$/\\n/'|tr -d '\n'| jq -r '.post.embed.images[].fullsize' 2>/dev/null
+done
+}
+
+CID=0
+IMG_ID=0
+wrapper "$@" | while read -r line; do
+  echo "$line" | grep -q '^https://'
+  if [ "$?" -eq 0 ]; then
+    # we have a URL line, so we use the previously determined CID as the base
+    # of the filename and increment by image numbers until we hit our next CID
+    # line
+    # FILETYPE
+    FILETYPE="$(echo "$line" | sed 's/^.*@//g')"
+    if [ "$FILETYPE" = 'jpeg' ]; then
+      FILETYPE='jpg'
+    fi
+    wget "$line" -O "$CID"'_'"$IMG_ID"'.'"$FILETYPE"
+    IMG_ID="$(expr "$IMG_ID" '+' 1)"
+  else
+    CID="$line"
+    IMG_ID=0
+  fi
+done
